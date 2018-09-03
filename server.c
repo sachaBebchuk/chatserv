@@ -63,9 +63,13 @@ int init_server(in_port_t port){
 	fflush(stdout);
 
 	clients_mutex = malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(clients_mutex,NULL);
+	err = pthread_mutex_init(clients_mutex,NULL);
+	if(err){
+		perror("mutex");
+		return -1;
+	}
 
-	clients = malloc(struct client_list);
+	clients = malloc(sizeof(struct client_list));
 	init_client_list(clients);
 
 	return 0;
@@ -78,7 +82,7 @@ void destroy_server(){
 	}
 	
 	if(clients_mutex){
-		pthread_mutex_destroy(clients_mutex,NULL);	
+		pthread_mutex_destroy(clients_mutex);	
 		free(clients_mutex);
 	}
 
@@ -116,7 +120,7 @@ void server_loop(int server_sock){
 
 	while(1){
 
-		if( pthread_mutex_trylock() || clients->count == MAX_CLIENTS){
+		if( pthread_mutex_trylock(clients_mutex) || clients->count == MAX_CLIENTS){
 			sleep(1);
 			continue;
 		}
@@ -152,7 +156,7 @@ void send_message( struct client *client, struct message_response *mr){
 	ssize_t b_sent = 0;
 	ssize_t send_result;
 	
-	while( b_sent < mr->size ){
+	while( b_sent < mr->m_size ){
 
 		send_result = send(client->s, mr, mr->m_size, 0);
 

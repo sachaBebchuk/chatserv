@@ -23,17 +23,6 @@
 //Protocol stuff
 #include "messages.h"
 
-//functions
-int                 init_server(in_port_t);
-void                destroy_server();
-in_port_t           get_port(char*);
-void                server_loop();
-void                handle_connection(int);
-void                broadcast_message(struct message_response*);
-void                send_message( struct client*, struct message_response*);
-struct client_list* init_client_list(struct client_list*);
-void                destroy_client_list(struct client_list*);
-
 //structs
 struct client{
 	char      *name;
@@ -51,7 +40,18 @@ struct client_node{
 	struct client      *client;
 	struct client_node *next;
 	struct client_node *prev;
-}
+};
+
+//functions
+int                 init_server(in_port_t);
+void                destroy_server();
+in_port_t           get_port(char*);
+void                server_loop();
+void                handle_connection(int);
+void                broadcast_message(struct message_response*);
+void                send_message(struct client*,struct message_response*);
+struct client_list* init_client_list(struct client_list*);
+void                destroy_client_list(struct client_list*);
 
 //globals
 struct client_list *clients;
