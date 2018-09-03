@@ -2,7 +2,6 @@
 
 //defines
 #define SERVER_H__
-#define _GNU_SOURCE
 #define DEFAULT_PORT 23456
 #define MAX_CLIENTS  8
 #define MAX_NAME_LEN 64
@@ -29,16 +28,16 @@ struct client{
 	pthread_t thread;
 };
 
-struct client_list{
-	struct client_node *first;
-	struct client_node *last;
-	int                count;
-};
-
 struct client_node{
 	struct client      *client;
 	struct client_node *next;
 	struct client_node *prev;
+};
+
+struct client_list{
+	struct client_node *first;
+	struct client_node *last;
+	int                count;
 };
 
 //functions
@@ -47,6 +46,8 @@ void                destroy_server();
 in_port_t           get_port(char*);
 void                server_loop();
 void                handle_connection(int);
+void*               client_thread(void*);
+struct client*      add_client(int);
 void                broadcast_message(struct message_response*);
 void                send_message(struct client*,struct message_response*);
 struct client_list* init_client_list(struct client_list*);

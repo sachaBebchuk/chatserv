@@ -134,7 +134,46 @@ void server_loop(){
 }
 
 void handle_connection(int client_socket){
-	
+
+	pthread_t     thread;
+	struct client *client;
+
+	client = add_client(client_socket);
+
+	pthread_create(&(client->thread),NULL,client_thread,client);
+}
+
+void * client_thread(void * args){
+
+	struct client *client = (struct client *) args;
+
+	return NULL;
+}
+
+struct client* add_client(int client_socket){
+
+	struct client      *client;
+	struct client_node *cn;
+
+	client = malloc(sizeof(struct client));
+	cn = malloc(sizeof(struct client_node));
+
+	client->s = client_socket;
+	client->name = NULL;
+	client->thread = 0;
+
+	pthread_mutex_lock(clients_mutex);
+
+	cn->prev = clients->last;
+	cn->next = NULL;
+
+	clients->last->next = cn;
+	clients->last = cn;
+	clients->count++;
+
+	pthread_mutex_unlock(clients_mutex);
+
+	return client;
 }
 
 void broadcast_message(struct message_response *mr){
