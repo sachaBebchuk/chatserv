@@ -41,15 +41,19 @@ struct client_list{
 };
 
 //functions
+in_port_t           get_port(char*);
 int                 init_server(in_port_t);
 void                destroy_server();
-in_port_t           get_port(char*);
 void                server_loop();
 void                handle_connection(int);
-void*               client_thread(void*);
-struct client*      add_client(int);
 void                broadcast_message(struct message_response*);
 void                send_message(struct client*,struct message_response*);
+
+void*               client_thread(void*);
+int                 client_login(struct client*);
+int                 client_loop(struct client*);
+
+struct client*      add_client(int);
 struct client_list* init_client_list(struct client_list*);
 void                destroy_client_list(struct client_list*);
 

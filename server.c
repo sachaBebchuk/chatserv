@@ -27,7 +27,7 @@ int main( int argc, char ** argv){
 
 int init_server(in_port_t port){
 
-	int				   err;
+	int                err;
 	struct sockaddr_in addr;
 
 	addr.sin_family = AF_INET;
@@ -138,42 +138,37 @@ void handle_connection(int client_socket){
 	pthread_t     thread;
 	struct client *client;
 
+	pthread_mutex_lock(clients_mutex);
+
 	client = add_client(client_socket);
+
+	pthread_mutex_unlock(clients_mutex);
 
 	pthread_create(&(client->thread),NULL,client_thread,client);
 }
 
-void * client_thread(void * args){
+void* client_thread(void * args){
 
 	struct client *client = (struct client *) args;
+
+	if(client_login(client)){
+		return NULL;
+	}
+
+	client_loop(client);
 
 	return NULL;
 }
 
-struct client* add_client(int client_socket){
+int client_login(struct client* client){
+	return 0;
+}
 
-	struct client      *client;
-	struct client_node *cn;
+void client_loop(struct client* client){
 
-	client = malloc(sizeof(struct client));
-	cn = malloc(sizeof(struct client_node));
+	while(1){
 
-	client->s = client_socket;
-	client->name = NULL;
-	client->thread = 0;
-
-	pthread_mutex_lock(clients_mutex);
-
-	cn->prev = clients->last;
-	cn->next = NULL;
-
-	clients->last->next = cn;
-	clients->last = cn;
-	clients->count++;
-
-	pthread_mutex_unlock(clients_mutex);
-
-	return client;
+	}
 }
 
 void broadcast_message(struct message_response *mr){
@@ -192,7 +187,7 @@ void broadcast_message(struct message_response *mr){
 	}
 }
 
-void send_message( struct client *client, struct message_response *mr){
+void send_message(struct client *client, struct message_response *mr){
 
 	ssize_t b_sent = 0;
 	ssize_t send_result;
@@ -207,39 +202,4 @@ void send_message( struct client *client, struct message_response *mr){
 
 		b_sent += send_result;
 	}
-}
-
-struct client_list* init_client_list(struct client_list *cl){
-
-	cl->first = NULL;
-	cl->last  = NULL;
-	cl->count = 0;
-
-	return cl;
-}
-
-void destroy_client_list(struct client_list *cl){
-
-	struct client_node *iterator_p = cl->first;
-	struct client      *client;
-
-	while(iterator_p){
-
-		client = iterator_p->client;
-
-		pthread_cancel(client->thread);
-		close(client->s);
-		free(client->name);
-		free(client);
-
-		if(!iterator_p->next){
-			free(iterator_p);
-			iterator_p = NULL;
-		}else{
-			iterator_p = iterator_p->next;
-			free(iterator_p->prev);
-		}
-	}
-
-	init_client_list(cl);
 }
