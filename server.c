@@ -2,28 +2,25 @@
 
 int main( int argc, char ** argv){
 	
-	char servname_str[SERV_LEN];
-	int  err;
+	in_port_t port;
+	int       err;
 
-	memset(servname_str,0,SERV_LEN);
 	clients = NULL;
 	clients_mutex = NULL;
 	server_sock = 0;
 
 	atexit(destroy_server);
 
-	if(argc > 1){
-		strncpy(servname_str,argv[1],strlen(argv[1]));
-	}
+	port = get_port( argc > 1 ? argv[1]: NULL );
 
-	err = init_server(get_port(servname_str));
+	err = init_server(port);
 
 	if(err){
 		printf("Couldn't initialize server, exiting.\n");
 		exit(1);
 	}
 
-	server_loop(server_sock);
+	server_loop();
 
 	exit(0);
 }
@@ -96,6 +93,10 @@ in_port_t get_port(char *servname_str){
 
 	in_port_t      port;
 	struct servent *serv;
+
+	if(!servname_str){
+		return htons(DEFAULT_PORT);		
+	}
 	
 	if(port = atoi(servname_str)){
 		return htons(port);
@@ -114,13 +115,14 @@ in_port_t get_port(char *servname_str){
 	return htons(DEFAULT_PORT);
 }
 
-void server_loop(int server_sock){
+void server_loop(){
 
 	int  accepted_socket;
 
 	while(1){
 
 		if( pthread_mutex_trylock(clients_mutex) || clients->count == MAX_CLIENTS){
+			pthread_mutex_unlock(clients_mutex);
 			sleep(1);
 			continue;
 		}

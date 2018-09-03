@@ -3,7 +3,6 @@
 //defines
 #define SERVER_H__
 #define _GNU_SOURCE
-#define SERV_LEN     256
 #define DEFAULT_PORT 23456
 #define MAX_CLIENTS  8
 #define MAX_NAME_LEN 64
