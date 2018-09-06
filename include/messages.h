@@ -5,7 +5,7 @@
 #define MAX_LOGIN_ATTEMPTS 5
 
 struct login_request{
-	int  m_size;
+	int  size;
 	char *name;
 };
 
@@ -15,13 +15,13 @@ struct login_response{
 };
 
 struct message_request{
-	int  m_size;
+	int  size;
 	char *m_str;
 };
 
 struct message_response{
-	int    m_size;
-	time_t m_time;
+	int    size;
+	time_t time;
 	int    name_size;
 	char   *username;
 	char   *m_str;

@@ -28,14 +28,16 @@ int client_login(struct client* client){
 	do{
 
 		//Read metadata
-		if(recv(client->s,&(req.m_size),sizeof(req.m_size),MSG_WAITALL) < 0){
+		if(recv(client->s,&(req.size),sizeof(req.size),MSG_WAITALL) < 0){
 			return 1;
 		}
+
+		req.size = req.size < MAX_NAME_LEN? req.size : MAX_NAME_LEN;
 
 		memset(buffer,0,sizeof(buffer));
 
 		//Read login name
-		if(recv(client->s,req.name,(req.m_size - sizeof(req.m_size)),MSG_WAITALL) < 0){
+		if(recv(client->s,req.name,req.size,MSG_WAITALL) < 0){
 			return 1;
 		}
 
@@ -50,8 +52,8 @@ int client_login(struct client* client){
 			continue;
 		}
 
-		client->name = malloc( req.m_size - sizeof(req.m_size) + 1);
-		strncpy(client->name,req.name,req.m_size);
+		client->name = malloc( req.size + 1);
+		strncpy(client->name,req.name,req.size);
 
 		continue_loop = 0;
 
@@ -62,11 +64,11 @@ int client_login(struct client* client){
 
 void client_loop(struct client* client){
 	
-	char end_loop = 0;
+	char continue_loop = 0;
 
 	do{
 
-	}while(end_loop);
+	}while(continue_loop);
 }
 
 int check_client_name(char *name, struct client_list *cl){
