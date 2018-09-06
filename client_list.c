@@ -1,5 +1,6 @@
+#include "client_list.h"
 
-struct client* add_client(int client_socket){
+struct client* add_client(int client_socket,struct client_list *cl){
 
 	struct client      *client;
 	struct client_node *cn;
@@ -12,14 +13,18 @@ struct client* add_client(int client_socket){
 	client->thread = 0;
 
 	cn->client = client;
-	cn->prev = clients->last;
+	cn->prev = cl->last;
 	cn->next = NULL;
 
-	clients->last->next = cn;
-	clients->last = cn;
-	clients->count++;
-
-	pthread_mutex_unlock(clients_mutex);
+	if(cl->count){
+		cl->last->next = cn;
+		cl->last = cn;
+		cl->count++;
+	}else{
+		cl->first = cn;
+		cl->last = cn;
+		cl->count++;
+	}
 
 	return client;
 }
@@ -36,24 +41,30 @@ struct client_list* init_client_list(struct client_list *cl){
 
 void destroy_client_list(struct client_list *cl){
 
-	struct client_node *iterator_p = cl->first;
+	struct client_node *ip = cl->first;
 	struct client      *client;
 
-	while(iterator_p){
+	while(ip){
 
-		client = iterator_p->client;
+		client = ip->client;
 
 		pthread_cancel(client->thread);
+		pthread_join(client->thread,NULL);
+		
 		close(client->s);
-		free(client->name);
+		
+		if(client->name){
+			free(client->name);
+		}
+
 		free(client);
 
-		if(!iterator_p->next){
-			free(iterator_p);
-			iterator_p = NULL;
+		if(!ip->next){
+			free(ip);
+			ip = NULL;
 		}else{
-			iterator_p = iterator_p->next;
-			free(iterator_p->prev);
+			ip = ip->next;
+			free(ip->prev);
 		}
 	}
 

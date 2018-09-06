@@ -1,34 +1,14 @@
 #include "server.h"
-
-int main( int argc, char ** argv){
-	
-	in_port_t port;
-	int       err;
-
-	clients = NULL;
-	clients_mutex = NULL;
-	server_sock = 0;
-
-	atexit(destroy_server);
-
-	port = get_port( argc > 1 ? argv[1]: NULL );
-
-	err = init_server(port);
-
-	if(err){
-		printf("Couldn't initialize server, exiting.\n");
-		exit(1);
-	}
-
-	server_loop();
-
-	exit(0);
-}
+#include "client_thread.h"
 
 int init_server(in_port_t port){
 
 	int                err;
 	struct sockaddr_in addr;
+
+	clients = NULL;
+	clients_mutex = NULL;
+	server_sock = 0;
 
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
@@ -140,50 +120,26 @@ void handle_connection(int client_socket){
 
 	pthread_mutex_lock(clients_mutex);
 
-	client = add_client(client_socket);
-
-	pthread_mutex_unlock(clients_mutex);
+	client = add_client(client_socket,clients);
 
 	pthread_create(&(client->thread),NULL,client_thread,client);
-}
 
-void* client_thread(void * args){
-
-	struct client *client = (struct client *) args;
-
-	if(client_login(client)){
-		return NULL;
-	}
-
-	client_loop(client);
-
-	return NULL;
-}
-
-int client_login(struct client* client){
-	return 0;
-}
-
-void client_loop(struct client* client){
-
-	while(1){
-
-	}
+	pthread_mutex_unlock(clients_mutex);
 }
 
 void broadcast_message(struct message_response *mr){
 
-	struct client_node *iterator_p = clients->first;
+	struct client_node *ip = clients->first;
 
-	while(iterator_p){
+	while(ip){
 
-		if(!iterator_p->client->name){
+		if(!ip->client->name){
 			continue;
 		}
 
-		send_message(iterator_p->client,mr);
+		send_message(ip->client,mr);
 
-		iterator_p = iterator_p->next;
+		ip = ip->next;
 	}
 }
 

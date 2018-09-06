@@ -1,7 +1,8 @@
 #ifndef MESSAGES_H
 
 #define MESSAGES_H
-#define MAX_MESSAGE_LEN 1024
+#define MAX_MESSAGE_LEN 500
+#define MAX_LOGIN_ATTEMPTS 5
 
 struct login_request{
 	int  m_size;
@@ -9,7 +10,6 @@ struct login_request{
 };
 
 struct login_response{
-	int m_size;
 	int error;
 	int countdown;
 };
