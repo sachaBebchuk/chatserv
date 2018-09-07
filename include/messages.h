@@ -1,12 +1,23 @@
 #ifndef MESSAGES_H
-
 #define MESSAGES_H
+
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #define MAX_MESSAGE_LEN 500
 #define MAX_LOGIN_ATTEMPTS 5
 
-struct login_request{
+struct message_buffer{
 	int  size;
-	char *name;
+	char *buffer;
+};
+
+struct chat_response{
+	int    size;
+	time_t time;
+	char   *username;
+	char   *m_str;
 };
 
 struct login_response{
@@ -14,17 +25,7 @@ struct login_response{
 	int countdown;
 };
 
-struct message_request{
-	int  size;
-	char *m_str;
-};
-
-struct message_response{
-	int    size;
-	time_t time;
-	int    name_size;
-	char   *username;
-	char   *m_str;
-};
+struct message_buffer* get_chat_response_buffer(struct chat_response*);
+void                   free_message_buffer(struct message_buffer*);
 
 #endif

@@ -6,6 +6,7 @@ int init_server(in_port_t port){
 	int                err;
 	struct sockaddr_in addr;
 
+	server_name = SERVER_NAME;
 	clients = NULL;
 	clients_mutex = NULL;
 	server_sock = 0;
@@ -127,9 +128,10 @@ void handle_connection(int client_socket){
 	pthread_mutex_unlock(clients_mutex);
 }
 
-void broadcast_message(struct message_response *mr){
+void broadcast_chat(struct chat_response *cr){
 
-	struct client_node *ip = clients->first;
+	struct client_node    *ip = clients->first;
+	struct message_buffer *mb = get_chat_response_buffer(cr);
 
 	while(ip){
 
@@ -137,20 +139,22 @@ void broadcast_message(struct message_response *mr){
 			continue;
 		}
 
-		send_message(ip->client,mr);
+		send_message(ip->client,mb);
 
 		ip = ip->next;
 	}
+
+	free_message_buffer(mb);
 }
 
-void send_message(struct client *client, struct message_response *mr){
+void send_message(struct client *client, struct message_buffer *mb){
 
 	ssize_t b_sent = 0;
 	ssize_t send_result;
 	
-	while( b_sent < mr->m_size ){
+	while( b_sent < mb->buffer_size ){
 
-		send_result = send(client->s, mr, mr->m_size, 0);
+		send_result = send(client->s, mb->buffer, mb->buffer_size, 0);
 
 		if( send_result == -1){
 			return;
@@ -158,4 +162,15 @@ void send_message(struct client *client, struct message_response *mr){
 
 		b_sent += send_result;
 	}
+}
+
+void broadcast_server_chat(char *message){
+
+	struct chat_response chat_response;
+
+	chat_response.time = time(NULL);
+	chat_response.username = server_name;
+	chat_response.m_str = message;
+
+	broadcast_chat(&chat_response);
 }

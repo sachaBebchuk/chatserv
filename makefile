@@ -5,7 +5,7 @@ ODIR = obj
 
 LIBS=-lpthread
 
-_OBJ = main.o server.o client_list.o client_thread.o
+_OBJ = main.o server.o client_list.o client_thread.o messages.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: %.c $(DEPS)
