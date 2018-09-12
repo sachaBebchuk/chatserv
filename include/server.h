@@ -32,6 +32,8 @@ void      handle_connection(int);
 void      broadcast_chat(struct chat_response*);
 void      broadcast_server_chat(char*);
 void      send_message(struct client*,struct message_buffer*);
+int       recv_message(struct client*,struct message_buffer*,int);
+int       discard_socket_data(int,int);
 
 //globals
 struct client_list *clients;

@@ -25,7 +25,9 @@ struct client_list{
 };
 
 struct client*      add_client(int,struct client_list*);
+int                 remove_client(struct client*, struct client_list*);
 struct client_list* init_client_list(struct client_list*);
 void                destroy_client_list(struct client_list*);
+void                destroy_client(struct client*);
 
 #endif

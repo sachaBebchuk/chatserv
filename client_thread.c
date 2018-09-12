@@ -19,25 +19,17 @@ int client_login(struct client* client){
 
 	char                  continue_loop = 1;
 	char                  buffer[MAX_NAME_LEN+1];
-	int                   name_size;
+	struct message_buffer mb;
 	int                   recv_ret;
 	struct login_response res;
+
+	mb.buffer = buffer;
 
 	res.countdown = MAX_LOGIN_ATTEMPTS;
 
 	do{
 
-		//Read metadata
-		if(recv(client->s,&name_size,sizeof(name_size),MSG_WAITALL) < 0){
-			return 1;
-		}
-
-		name_size = name_size > MAX_NAME_LEN ? MAX_NAME_LEN : name_size;
-
-		memset(buffer,0,sizeof(buffer));
-
-		//Read login name
-		if(recv(client->s,buffer,name_size,MSG_WAITALL) < 0){
+		if(recv_message(client,&mb,MAX_NAME_LEN)){
 			return 1;
 		}
 
@@ -52,8 +44,8 @@ int client_login(struct client* client){
 			continue;
 		}
 
-		client->name = malloc( name_size + 1);
-		strncpy(client->name,buffer,name_size);
+		client->name = malloc( mb.size + 1);
+		strncpy(client->name,buffer,mb.size);
 
 		continue_loop = 0;
 
@@ -62,13 +54,28 @@ int client_login(struct client* client){
 	return !res.countdown;
 }
 
-void client_loop(struct client* client){
+void client_loop(struct client *client){
 	
-	char continue_loop = 0;
+	char                  char_buffer[MAX_MESSAGE_LEN];
+	struct message_buffer mb;
+	struct chat_response  chat_response;
 
-	do{
+	chat_response.username = client->name;
+	chat_response.c_str    = char_buffer;
 
-	}while(continue_loop);
+	broadcast_chat(&chat_response);
+
+	while(1){
+		
+		if(recv_message(client,&mb,MAX_MESSAGE_LEN)){
+			break;
+		}
+
+		chat_response.time = time(NULL);
+
+		broadcast_chat(&chat_response);
+
+	};
 }
 
 int check_client_name(char *name, struct client_list *cl){
@@ -99,9 +106,10 @@ int check_client_name(char *name, struct client_list *cl){
 }
 
 void login_message(struct client* client){
+
 	char message[MAX_MESSAGE_LEN];
 
-	memset(message,0,'\0');
+	memset(message,0,MAX_MESSAGE_LEN);
 	strcpy(message,client->name);
 	strcat(message," is now online!");
 

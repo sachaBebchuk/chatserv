@@ -6,6 +6,7 @@
 #include <time.h>
 
 #define MAX_MESSAGE_LEN 500
+#define MAX_BUFFER_SIZE 1024
 #define MAX_LOGIN_ATTEMPTS 5
 
 struct message_buffer{
@@ -17,7 +18,7 @@ struct chat_response{
 	int    size;
 	time_t time;
 	char   *username;
-	char   *m_str;
+	char   *c_str;
 };
 
 struct login_response{

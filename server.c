@@ -152,9 +152,9 @@ void send_message(struct client *client, struct message_buffer *mb){
 	ssize_t b_sent = 0;
 	ssize_t send_result;
 	
-	while( b_sent < mb->buffer_size ){
+	while( b_sent < mb->size ){
 
-		send_result = send(client->s, mb->buffer, mb->buffer_size, 0);
+		send_result = send(client->s, mb->buffer, mb->size, 0);
 
 		if( send_result == -1){
 			return;
@@ -170,7 +170,54 @@ void broadcast_server_chat(char *message){
 
 	chat_response.time = time(NULL);
 	chat_response.username = server_name;
-	chat_response.m_str = message;
+	chat_response.c_str = message;
 
 	broadcast_chat(&chat_response);
+}
+
+int recv_message(struct client *client, struct message_buffer *mb, int max_len){
+
+	int overflow = 0;
+
+	memset(mb->buffer,0,max_len);
+
+	//Read metadata
+	if(recv(client->s,&(mb->size),sizeof(mb->size),MSG_WAITALL) < 0){
+		return 1;
+	}
+
+	if( mb->size > max_len ){
+		overflow = mb->size - max_len;
+		mb->size = max_len;
+	}
+
+	//Read login name
+	if(recv(client->s,mb->buffer,mb->size,MSG_WAITALL) < 0){
+		return 1;
+	}
+
+	if(overflow && discard_socket_data(client->s,overflow)){
+		return 1;
+	}
+
+	return 0;
+}
+
+int discard_socket_data( int s, int len){
+
+	char buffer[MAX_BUFFER_SIZE];
+	int  recv_ret;
+
+	while(len > 0){
+		
+		recv_ret = recv(s,buffer,sizeof(buffer),MSG_WAITALL);
+
+		if(recv_ret < 0){
+			return 1;
+		}
+
+		len -= recv_ret;
+	}
+
+	return 0;
 }
